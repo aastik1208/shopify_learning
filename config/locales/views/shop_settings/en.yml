@@ -1,0 +1,4 @@
+en:
+  shop_settings:
+    update:
+      shop_setting_successfully_updated: 'Shop Settings were successfully saved.'

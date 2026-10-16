@@ -1,0 +1,118 @@
+<%= content_tag :div, nil, id: 'shopify-app-page-title', data: { title: 'Promo Codes' } %>
+
+<div>
+  <ul class="nav nav-tabs">
+    <li class="active"><a href="#all_codes" data-toggle="tab" aria-expanded="true">Promo Codes</a></li>
+    <li class=""><a href="#used_codes"  data-toggle="tab" aria-expanded="true">Used </a></li>
+    <li class=""><a href="#unused_codes" data-toggle="tab" aria-expanded="true">Unused </a></li>
+    <li class=""><a href="#usage_exhausted_codes" data-toggle="tab" aria-expanded="true">Exhausted</a></li>
+    <li class=""><a href="#expired_codes" data-toggle="tab" aria-expanded="true">Expired</a></li>
+  </ul>
+  <br>
+
+  <div class="row">
+    <div class="col-md-5 col-xs-5">
+      <%= form_with url: update_usage_limit_promo_codes_path, method: :post do %>
+        <%= submit_tag "Update codes usage limit by #{current_shop.usage_limit_update_amount}", class: 'btn btn-primary', data: {confirm: "About to update codes usage limit by #{current_shop.usage_limit_update_amount}. Are you sure?"}  %>
+      <% end %>
+      <br>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-5 col-xs-5">
+      <%= form_with url: update_usage_limit_exhausted_only_promo_codes_path, method: :post do %>
+        <%= submit_tag "Update EXHAUSTED codes usage limit by #{current_shop.usage_limit_update_amount_for_exhausted}", class: 'btn btn-primary', data: {confirm: "About to update EXHAUSTED codes usage limit by #{current_shop.usage_limit_update_amount_for_exhausted}. Are you sure?"}  %>
+      <% end %>
+      <br>
+    </div>
+  </div>
+
+  <div class="digg_pagination">
+    <div class="page_info">
+      <%= page_entries_info @codes %>
+    </div>
+  </div>
+
+  <div id="myTabContent" class="tab-content">
+    <div class="tab-pane fade active in" id="all_codes">
+      <% if @codes.blank? %>
+        <p class="row"></p>
+          <h4>You haven't created any Promo Codes yet. Use the form above to add one or more promo codes.</h4>
+        <p class="row"></p>
+      <% else %>
+        <div class="row">
+          <div class="col-md-5 col-xs-5">
+            <%= link_to 'Dowload All Codes CSV ', generate_promo_codes_path(@generate, format: :csv) %>
+          </div>
+        </div>
+        <%= render 'codes/codes', codes: @codes %>
+        <div class="digg_pagination">
+          <%= will_paginate @codes, :container => false %>
+        </div>
+      <% end %>
+    </div>
+    <div class="tab-pane fade in" id="used_codes">
+      <% if @used_codes.blank? %>
+        <p class="row"></p>
+          <h4>No used promo codes.</h4>
+        <p class="row"></p>
+      <% else %>
+        <div class="row">
+          <div class="col-md-5 col-xs-5">
+            <%= link_to 'Dowload Used Codes CSV ', generate_used_code_promo_codes_path(@generate, :format => :csv) %>
+          </div>
+        </div>
+        <%= render 'codes/codes', codes: @used_codes %>
+      <% end %>
+    </div>
+
+    <div class="tab-pane fade in" id="unused_codes">
+      <% if @unused_codes.blank? %>
+        <p class="row"></p>
+          <h4>No unused promo codes.</h4>
+        <p class="row"></p>
+      <% else %>
+        <div class="row">
+          <div class="col-md-5 col-xs-5">
+            <%= link_to 'Dowload Unused Codes CSV ', generate_unused_code_promo_codes_path(@generate, :format => :csv) %>
+          </div>
+        </div>
+        <%= render 'codes/codes', codes: @unused_codes %>
+      <% end %>
+    </div>
+
+    <div class="tab-pane fade in" id="usage_exhausted_codes">
+      <% if @usage_exhausted_codes.blank? %>
+        <p class="row"></p>
+          <h4>No Codes with usage limit exhausted.</h4>
+        <p class="row"></p>
+      <% else %>
+        <div class="row">
+          <div class="col-md-5 col-xs-5">
+            <%= link_to 'Dowload Expired Codes CSV ', generate_exhausted_code_promo_codes_path(@generate, :format => :csv) %>
+          </div>
+        </div>
+        <h4>Results of promo codes.</h4>
+        <%= render 'codes/codes', codes: @usage_exhausted_codes %>
+      <% end %>
+    </div>
+
+    <div class="tab-pane fade in" id="expired_codes">
+      <% if @expired_codes.blank? %>
+        <p class="row"></p>
+          <h4>No Codes with usage limit exhausted.</h4>
+        <p class="row"></p>
+      <% else %>
+        <div class="row">
+          <div class="col-md-5 col-xs-5">
+            <%= link_to 'Dowload Expired Codes CSV ', generate_expired_code_promo_codes_path(@generate, :format => :csv) %>
+          </div>
+        </div>
+        <h4>Results of promo codes.</h4>
+        <%= render 'codes/codes', codes: @expired_codes %>
+      <% end %>
+    </div>
+  </div>
+
+</div>

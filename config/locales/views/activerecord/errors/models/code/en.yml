@@ -1,0 +1,6 @@
+en:
+  activerecord:
+    errors:
+      models:
+        code:
+          code_orders_present: "Code with orders cannot be deleted"

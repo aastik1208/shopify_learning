@@ -1,0 +1,4 @@
+en:
+  admin_mailer:
+    send_promo_codes_report_email:
+      subject: "PromoCode report for %{shop_name} store"

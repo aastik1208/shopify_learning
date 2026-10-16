@@ -1,0 +1,76 @@
+
+<%= form_with scope: :promo_code, url: promo_codes_path, class: 'form-horizontal' do |f| %>
+  <fieldset>
+
+    <div class="form-group">
+      <div class="col-xs-12 col-md-12">
+        <%= f.text_area :names, rows: 3, placeholder: "Add comma seperated promo codes like AAA-EXAMPLE1.1, DDD-111ZZZ, AAA-test@example.com", class: 'form-control', value: @invalid_names.join("\n") %>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="col-xs-12 col-md-6 col-md-offset-6">
+        <div class="col-xs-5 col-md-4">
+        <%= f.label :usage_limit, class: 'control-label' %>
+          <%= f.number_field :usage_limit, { value: 1, min: 1, class: 'form-control', id: :promo_code_usage_limit } %>
+        </div>
+        <div class="col-xs-5 col-md-4">
+          <%= f.label 'Number of products allowed in each order', class: 'control-label' %>
+          <%= f.number_field :products_in_order_limit, { value: 1, min: 1, class: 'form-control', id: :promo_code_products_in_order_limit } %>
+        </div>
+        <div class="col-xs-5 col-md-4">
+          <%= f.label :expiry_date, class: 'control-label' %>
+          <%= f.text_field :expiry_date, autocomplete: "off", class: 'form-control',
+            data: { provide: 'datepicker', 'date-format' => 'yyyy-mm-dd', 'date-start-date': Date.today}, placeholder: 'YYYY-MM-DD' %>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="col-xs-12 col-md-12">
+        <label class='control-label'>
+          <%= f.check_box :allow_domestic_shipping, checked: @selected_code_settings.blank? || @selected_code_settings['allow_domestic_shipping'] == '1' ? true : false %>
+          Allows domestic shipping
+        </label>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="col-xs-12 col-md-12">
+        <label class='control-label'>
+          <%= f.check_box :has_free_domestic_shipping, checked: @selected_code_settings.blank? || @selected_code_settings['has_free_domestic_shipping'] == '1' ? true : false %>
+          Grants free domestic shipping
+        </label>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="col-xs-12 col-md-12">
+        <label class='control-label'>
+          <%= f.check_box :allow_international_shipping, checked: @selected_code_settings.try(:[], 'allow_international_shipping') == '1' ? true : false %>
+          Allows international shipping
+        </label>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="col-xs-12 col-md-12">
+        <label class='control-label'>
+          <%= f.check_box :has_free_international_shipping, checked: @selected_code_settings.try(:[], 'has_free_international_shipping') == '1' ? true : false %>
+          Grants free international shipping
+        </label>
+      </div>
+    </div>
+
+
+
+    <div class="form-group">
+      <div class="col-xs-12 col-md-12">
+        <%= f.submit I18n.t(:save, scope: :action), class: 'btn btn-primary' %>
+        <%= button_tag I18n.t(:reset, scope: :action), type: :reset, class: 'btn btn-default' %>
+        <%= link_to I18n.t(:cancel, scope: :action), home_path, class: 'btn btn-default' %>
+      </div>
+    </div>
+
+  </fieldset>
+<% end %>

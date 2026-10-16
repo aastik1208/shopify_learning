@@ -1,0 +1,42 @@
+<%= content_tag :div, nil, id: 'shopify-app-page-title', data: { title: 'Promo Codes Reports' } %>
+
+<div class="col-md-7 col-xs-12 col-md-offset-2">
+  <div class="well">
+    <%= form_with url: reports_path, class: 'form-horizontal' do |f| %>
+      <fieldset>
+
+        <div class="form-group">
+          <%= f.label 'Enter Prefix Name', class: 'required-field control-label col-xs-4 col-md-3' %>
+          <div class="col-xs-8 col-md-9">
+            <%= f.text_field :prefix, class: 'form-control', required: true, placeholder: 'Enter Prefix like: AAA or ABC' %>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <%= f.label 'Email to receive file', class: 'required-field control-label col-xs-4 col-md-3' %>
+          <div class="col-xs-8 col-md-9">
+            <%= f.text_field :email, class: 'form-control', required: true %>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <%= f.label :code_usage_type, class: 'required-field control-label col-xs-5 col-md-3' %>
+          <div class="col-xs-7 col-md-7">
+            <%= f.collection_radio_buttons :code_usage_type, [[0, "Used"],[1, "Unused"],[2, "All"]], :first, :last, checked: 2, required: true do |rb| %>
+              <%= rb.radio_button %> <%= rb.label %> <br>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class='col-xs-4 col-md-3'></div>
+          <div class="col-xs-8 col-md-9">
+            <%= f.submit 'Download Report', class: 'btn btn-primary' %>
+            <%= link_to I18n.t(:cancel, scope: :action), home_path, class: 'btn btn-default' %>
+          </div>
+        </div>
+
+      </fieldset>
+    <% end %>
+  </div>
+</div>

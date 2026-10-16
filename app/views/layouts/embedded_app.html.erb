@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <% application_name = ShopifyApp.configuration.application_name %>
+    <title><%= application_name %></title>
+    <%= stylesheet_link_tag 'application' %>
+    <%= javascript_pack_tag 'application', 'data-turbolinks-track': 'reload' %>
+    <%= javascript_include_tag 'bootstrap.min', media: 'all', 'data-turbolinks-track': 'reload' %>
+    <%= stylesheet_link_tag  'bootstrap.min', media: 'all', 'data-turbolinks-track': 'reload' %>
+    <%= csrf_meta_tags %>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
+  </head>
+
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-light" style="background-color: #c7c6ca; font-size: 17px" >
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item">
+            <%= link_to t(:home, scope: :navbar), home_path, class: "nav-link" %>
+          </li>
+          <li class="nav-item">
+            <%= link_to t(:prefixes, scope: :navbar), home_generate_path, class: "nav-link" %>
+          </li>
+          </li>
+          <li class="nav-item">
+            <%= link_to t(:promo_codes, scope: :navbar), promo_codes_path, class: "nav-link" %>
+          </li>
+          <li class="nav-item">
+            <%= link_to t(:generate_promo_codes, scope: :navbar), new_promo_code_generate_path, class: "nav-link" %>
+          </li>
+          <li class="nav-item">
+            <%= link_to t(:reports, scope: :navbar), reports_path, class: "nav-link" %>
+          </li>
+          <li class="nav-item">
+            <%= link_to t(:lookup, scope: :navbar), search_path, class: "nav-link" %>
+          </li>
+          <li class="nav-item">
+            <%= link_to t(:instruction, scope: :navbar), modification_instructions_themes_path, class: "nav-link" %>
+          </li>
+          <li class="nav-item">
+            <%= link_to t(:setting, scope: :navbar), edit_shop_setting_path(current_shop), class: "nav-link" %>
+          </li>
+        </ul>
+      </div>
+    </nav>
+    <div class="app-wrapper">
+      <div class="app-content">
+        <main role="main">
+          <div class="col-md-12 col-xs-12">
+            <%= yield %>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <%= render 'layouts/flash_messages' %>
+
+    <script src="https://unpkg.com/@shopify/app-bridge@2"></script>
+
+    <%= content_tag(:div, nil, id: 'shopify-app-init', data: {
+      api_key: ShopifyApp.configuration.api_key,
+      shop_origin: @shop_origin || (@current_shopify_session.domain if @current_shopify_session),
+      load_path: params[:return_to] || home_path,
+      debug: Rails.env.development?,
+      forceRedirect: true,
+      page: 'Home'
+    } ) %>
+
+    <% if content_for?(:javascript) %>
+      <div id="ContentForJavascript" data-turbolinks-temporary>
+        <%= yield :javascript %>
+      </div>
+    <% end %>
+  </body>
+</html>

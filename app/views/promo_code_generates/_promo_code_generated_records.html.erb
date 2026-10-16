@@ -1,0 +1,34 @@
+<div class="panel panel-default">
+  <div class="table-responsive">
+    <table class="table table-striped table-hover ">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Prefix</th>
+          <th>Number of codes requested</th>
+          <th>Generated on</th>
+          <th>Codes File</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <% @promo_code_generated_records.each.with_index(1) do |promo_code_generated_record, index| %>
+          <tr class="<%= 'table-success' if index == 1%>">
+            <td nowrap></td>
+            <td nowrap><%= promo_code_generated_record.prefix%></td>
+            <td nowrap><%= promo_code_generated_record.count%></td>
+            <td nowrap><%= promo_code_generated_record.updated_at.strftime('%b %d %Y %l:%M %P') %></td>
+            <td nowrap>
+              <% if promo_code_generated_record.codes_file.attached? %>
+                Click <%= link_to 'here', rails_blob_path(promo_code_generated_record.codes_file, disposition: "attachment") %> to download.</p>
+              <% else %>
+                -
+              <% end %>
+              </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>
+

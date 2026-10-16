@@ -1,0 +1,5 @@
+{% layout none %}
+
+<% @product_titles = @order.products.collect(&:shopify_title) %>
+
+<%= json_data = { :titles => @product_titles }.to_json %>

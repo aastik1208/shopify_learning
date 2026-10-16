@@ -1,0 +1,10 @@
+en:
+  activerecord:
+    errors:
+      models:
+        order:
+          product_unavailable: "%{product_title} is currently unavailable."
+          product_unavailable_reload: "Please reload page to see updated available products."
+          no_product_found: "Please select atleast one product."
+          product_limit_exceeded: "Please ensure to maximum product limit is followed."
+          variants_incorrect: "Please select variant option for selected products."

@@ -1,0 +1,8 @@
+en:
+  themes:
+    create_code_pages:
+      code_pages_successfully_created: 'Pages were successfully created in your shop.'
+
+    modify:
+      theme_modification_job_enqueued: 'You will receive an email soon regarding the status of your live theme modification.'
+

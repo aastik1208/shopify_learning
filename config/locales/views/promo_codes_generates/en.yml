@@ -1,0 +1,4 @@
+en:
+  promo_code_generates:
+    create:
+      codes_creation_success: "Code created successfully."

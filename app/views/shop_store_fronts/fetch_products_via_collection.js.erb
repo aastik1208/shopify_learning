@@ -1,0 +1,37 @@
+
+{% layout none %}
+<% @products_data = @products.map do |p| %>
+  {% assign <%= "collection_product#{p.id}" %> = collections["<%= @collection_handle %>"].products | where: "handle", '<%= p.shopify_handle %>' | first %}
+  {% assign <%= "variant_options#{p.id}" %> = <%= "collection_product#{p.id}" %>.options | join: '/' %}
+  {% assign <%= "product_variants#{p.id}" %> = '' %}
+  {% for <%= "variant#{p.id}" %> in <%= "collection_product#{p.id}" %>.variants %}
+    {% assign <%= "variant_id#{p.id}" %> = "||id=" | append: <%= "variant#{p.id}" %>.id %}
+    {% assign <%= "variant_title#{p.id}" %> = ",title=" | append: <%= "variant#{p.id}" %>.title %}
+    {% assign <%= "variant_available#{p.id}" %> = ",available=" | append: <%= "variant#{p.id}" %>.available %}
+    {% assign <%= "variant_inventory_quantity#{p.id}" %> = ",inventory_quantity=" | append: <%= "variant#{p.id}" %>.inventory_quantity %}
+    {% assign <%= "variant_inventory_policy#{p.id}" %> = ",inventory_policy=" | append: <%= "variant#{p.id}" %>.inventory_policy %}
+    {% assign <%= "variant_image#{p.id}" %> = <%= "variant#{p.id}" %>.featured_image | img_url: '600x600' %}
+    {% assign <%= "variant_image_url#{p.id}" %> = ",variant_image_url=" | append: <%= "variant_image#{p.id}" %> %}
+    {% assign <%= "variant_data#{p.id}" %> = <%= "variant_id#{p.id}" %> | append: <%= "variant_title#{p.id}" %> | append: <%= "variant_available#{p.id}" %> | append: <%= "variant_inventory_policy#{p.id}" %> | append: <%= "variant_inventory_quantity#{p.id}" %> | append: <%= "variant_image_url#{p.id}" %> %}
+    {% assign <%= "new_product_variants#{p.id}" %> = <%= "product_variants#{p.id}" %> | append: <%= "variant_data#{p.id}" %> %}
+    {% assign <%= "product_variants#{p.id}" %> = <%= "new_product_variants#{p.id}" %> %}
+  {% endfor %}
+
+  <% { :id => p.id, :title => p.shopify_title, :imageUrl => "{{ collection_product#{p.id}.featured_image | img_url: '600x600' }}", :variantOptions => "{{ variant_options#{p.id} }}", :variants => "{{ product_variants#{p.id} }}" } %>
+<% end %>
+
+<% @countries_data = @shipping_countries.map do |c| %>
+  <% { :id => c.id, :name => c.name } %>
+<% end %>
+
+<% if @states.blank? %>
+  <% @states_data = nil %>
+<% else %>
+  <% @states_data = @states.map do |s| %>
+    <% { :id => s.id, :name => s.name } %>
+  <% end %>
+<% end %>
+
+<% @shipping_data = { :shipping_type => @shipping_type, :free_shipping_for => @free_shipping_for } %>
+
+<%= json_data = { :products => @products_data, :products_limit => @products_limit, :show_inventory_count => @show_inventory_count, :countries => @countries_data, :states => @states_data, :code => { :id => @code.id }, :shipping => @shipping_data }.to_json %>

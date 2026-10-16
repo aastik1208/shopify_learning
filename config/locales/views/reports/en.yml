@@ -1,0 +1,8 @@
+en:
+  reports:
+    index:
+      no_prefixes: "No prefix created for the store yet."
+
+    create:
+      invalid_prefix: "Invalid prefix name entered."
+      mail_sent: "You will soon receive mail with promocodes report."

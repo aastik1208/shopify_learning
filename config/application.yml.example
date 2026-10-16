@@ -1,0 +1,20 @@
+development:
+  app_host_address: 'https://app_host_address.com'
+  shopify_application_api_key: 'app_api_key'
+  shopify_application_secret: 'app_secret'
+  access_scopes: "read_products, write_products, read_orders, write_orders, read_themes, write_themes, read_content, write_content, read_customers, read_inventory, write_inventory"
+  order_expiration_token_hmac_secret: 'my-secret-key'
+
+production:
+  app_host_address: 'https://app_host_address.com'
+  shopify_application_api_key: 'app_api_key'
+  shopify_application_secret: 'app_secret'
+  access_scopes: "read_products, write_products, read_orders, write_orders, read_themes, write_themes, read_content, write_content, read_customers, read_inventory, write_inventory"
+  order_expiration_token_hmac_secret: 'my-secret-key'
+
+staging:
+  app_host_address: 'https://app_host_address.com'
+  shopify_application_api_key: 'app_api_key'
+  shopify_application_secret: 'app_secret'
+  access_scopes: "read_products, write_products, read_orders, write_orders, read_themes, write_themes, read_content, write_content, read_customers, read_inventory, write_inventory"
+  order_expiration_token_hmac_secret: 'my-secret-key'

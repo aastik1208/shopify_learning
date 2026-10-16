@@ -1,0 +1,4 @@
+en:
+  shop_store_fronts:
+    state_code:
+      not_found: "Not able to find the state, please try again with valid name"

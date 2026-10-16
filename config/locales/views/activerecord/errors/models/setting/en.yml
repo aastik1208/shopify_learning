@@ -1,0 +1,6 @@
+en:
+  activerecord:
+    errors:
+      models:
+        setting:
+          code_page_already_exist: 'Select atleast one shipping type.'

@@ -1,0 +1,14 @@
+en:
+  theme_mailer:
+    theme_already_modified_email:
+      subject: "%{shop_name} - Live theme is already modified."
+
+    theme_already_partially_modified_email:
+      subject: "%{shop_name} - Live theme is already partially modified."
+
+    theme_modification_failure_email:
+      subject: "%{shop_name} - Live theme modification failed."
+
+    theme_modification_success_email:
+      subject: "%{shop_name} - Live theme successfully modified."
+

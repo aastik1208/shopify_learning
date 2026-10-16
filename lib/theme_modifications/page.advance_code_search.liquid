@@ -1,0 +1,107 @@
+
+{{ '//ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js' | script_tag }}
+
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<link href="{{ 'advance_code_styles.css' | asset_url }}" rel="stylesheet" type="text/css"  media="all"  />
+<link href="{{ 'theme.scss.css' | asset_url }}" rel="stylesheet" type="text/css"  media="all"  />
+
+<div class="container" id="search_code_form">
+  <h1>Enter your code</h1>
+
+  <article class="row">
+    <form action="{{ shop.secure_url | append: '/apps/advance_promo_codes/shop_store_front/validate_code' }}" method="post" data-for='code_search' data-remote='true' >
+      <div class="col-md-6 col-sm-6">
+        <div class="alert alert-danger hide" data-for="code_error">
+          {% comment %}error message{% endcomment %}
+        </div>
+        <div class="form-group">
+          <label for="code" class="">Code</label>
+          <input type="text" name="code[name]" class="form-control" id="code">
+        </div>
+
+        <div class="form-group">
+          <input type="submit" value="Check Code" class="btn btn-primary" data-disable-with='Checking...'>
+        </div>
+      </div>
+    </form>
+  </article>
+</div>
+
+<script type="text/javascript">
+  $(function(){
+    function getUrlParams(search) {
+      let hashes = search.slice(search.indexOf('?') + 1).split('&')
+      let params = {}
+      hashes.map(hash => {
+          let [key, val] = hash.split('=')
+          params[key] = decodeURIComponent(val)
+      })
+      return params
+    }
+
+    var params = getUrlParams(window.location.search);
+
+    if(params.error != undefined)
+    {
+      $("[data-for='code_error']").html(params.error.replace(/_/g, " ")).removeClass('hide');
+    }
+  })
+</script>
+
+<script>
+  function FormSubmitter(options){
+    this.$formElement = options.$formElement;
+    this.requestType = this.$formElement[0].method.toUpperCase();
+    this.requestUrl = this.$formElement[0].action;
+    this.$submitButton = this.$formElement.find("[type='submit']");
+  }
+
+  FormSubmitter.prototype.init = function(){
+    this.$formElement.submit(this.sendAjaxRequest());
+  };
+
+  FormSubmitter.prototype.sendAjaxRequest = function(){
+    var _this = this;
+
+    return function(event){
+      event.preventDefault();
+
+      _this.$submitButton.prop('disabled', true);
+      _this.$submitButton.attr('value', _this.$submitButton.data('disable-with'));
+
+      $.ajax({
+        url: _this.requestUrl,
+        data: _this.$formElement.serialize(),
+        type: _this.requestType
+      })
+        .done(function(response) {
+          //redirecting to show products page
+          if(response.redirect_link != undefined){
+            window.location.replace(response.redirect_link);
+          }
+          $("form[data-for='code_search']").find("[type='submit']").prop('disabled', false).attr('value', 'Check Code')
+        })
+        .fail(function( xhr, status, errorThrown ) {
+          // console.log( "Error: " + errorThrown );
+          // console.log( "Status: " + status );
+          // console.dir( xhr );
+          //redirecting to app's storefront in case metafield is not set
+          if(xhr.status == 301 && xhr.responseJSON.redirect_link != undefined){
+            window.location.replace(xhr.responseJSON.redirect_link);
+          }
+          //rendering error
+          else if(xhr.status == 404 && xhr.responseJSON.error !== undefined){
+            $("[data-for='code_error']").html(xhr.responseJSON.error).removeClass('hide');
+          }
+          $("form[data-for='code_search']").find("[type='submit']").prop('disabled', false).attr('value', 'Check Code')
+        });
+    }
+  };
+
+  $(function(){
+    var codeSearchFromSubmitterArguments = { $formElement : $("form[data-for='code_search']") },
+        codeSearchFromSubmitter = new FormSubmitter(codeSearchFromSubmitterArguments);
+
+    codeSearchFromSubmitter.init();
+  });
+</script>

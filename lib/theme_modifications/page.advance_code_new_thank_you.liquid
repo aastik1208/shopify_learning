@@ -1,0 +1,94 @@
+{% layout none %}
+<script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+<link href="{{ 'advance_code_styles.css' | asset_url }}" rel="stylesheet" type="text/css"  media="all"  />
+<link href="{{ 'theme.css' | asset_url }}" rel="stylesheet" type="text/css"  media="all"  />
+
+<script type="text/javascript">
+  $(document).ready(function(){
+    var codeStoreLink = "{{ shop.secure_url | append: '/pages/advance-code-store' }}";
+
+    function getUrlParams(search) {
+      let hashes = search.slice(search.indexOf('?') + 1).split('&')
+      let params = {}
+      hashes.map(hash => {
+        let [key, val] = hash.split('=')
+        params[key] = decodeURIComponent(val)
+      })
+      return params
+    }
+
+    var params = getUrlParams(window.location.search);
+
+    if(params.etoken != undefined){
+      var $newForm = $('<form>', {
+        'action': "{{ shop.secure_url | append: '/apps/advance_promo_codes/shop_store_front/order_validity_status' }}",
+        'method': 'get'
+      }).append($('<input>', {
+        'name': 'order[expiration_token]',
+        'value': params.etoken,
+        'type': 'hidden'
+      }));
+
+      $.ajax({
+        url: $newForm[0].action,
+        data: $newForm.serialize(),
+        type: $newForm[0].method.toUpperCase()
+      })
+      .done(function(response) {
+        var res=jQuery.parseHTML(response),
+            data = JSON.parse(res[0].data),
+            titles = data.titles;
+
+        var $orderItemSpan = $('#customize-order-items');
+
+        //rendering title-list
+        var titleListArray = [];
+        titles.forEach(function(title, index){
+          var $listItem = null;
+          $listItem = $('<li>',{ 'class': 'list-group-item'}).html(index+1 + ". " + title);
+          titleListArray.push($listItem);
+        });
+        var $titleList = $('<ul>',{ 'class': 'list-group list-group-numbered'}).append(titleListArray);
+        $orderItemSpan.append($titleList);
+
+      })
+      .fail(function( xhr, status, errorThrown ) {
+        // console.log( "Error: " + errorThrown );
+        // console.log( "Status: " + status );
+        // console.dir( xhr );
+        //redirecting to app's storefront in case metafield is not set
+        if(xhr.status == 301 && xhr.responseJSON.redirect_link != undefined){
+          window.location.replace(xhr.responseJSON.redirect_link);
+        }
+        else if(xhr.status === 403 || xhr.status === 404 || xhr.status === 422){
+          window.location.replace(codeStoreLink);
+        }
+      });
+
+    }else{
+      window.location.replace(codeStoreLink);
+    }
+  })
+</script>
+
+<div class="container code-logo-container text-center" hidden>
+  <br><br><img  src="{{ 'logo.png' | asset_img_url:'400x' }}" ><br><br>
+</div>
+
+<div class="product-single container">
+  <div class="grid row">
+    <div class="col-md-6 col-md-offset-3" style="font-size: 17px;">
+      <div data-template-for='order-complete'>
+        <h1 id="customize-headline">Thank you!</h1>
+
+        <span id="customize-subheadline-1">
+          Your order has been requested.<br><br>
+          <span id="customize-order-items"></span>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>

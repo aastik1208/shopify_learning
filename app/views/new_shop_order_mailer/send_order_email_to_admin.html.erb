@@ -1,0 +1,62 @@
+<div>
+  <p><%= @shop.name %> : New order requested</p>
+  <p>Please find the order details </p>
+  <br>
+  <table border="0" align="center" cellpadding="0" cellspacing="0" width="100%">
+    <tbody>
+     <tr>
+      	<td align="middle" style="font-size:14px;padding:10px 0 10px 0">First Name</td>
+      	<td align="middle" style="font-size:14px;padding:10px 0 10px 0"><%= @order['first_name']%></td>
+     </tr>
+     <tr>
+      	<td align="middle" style="font-size:14px;padding:10px 0 10px 0">Last Name</td>
+      	<td align="middle" style="font-size:14px;padding:10px 0 10px 0"><%= @order['last_name']%></td>
+     </tr>
+     <tr>
+      	<td align="middle" style="font-size:14px;padding:10px 0 10px 0">Title</td>
+      	<td align="middle" style="font-size:14px;padding:10px 0 10px 0"><%= @order['title']%></td>
+     </tr>
+     <tr>
+      	<td align="middle" style="font-size:14px;padding:10px 0 10px 0">Address1</td>
+      	<td align="middle" style="font-size:14px;padding:10px 0 10px 0"><%= @order['address1']%></td>
+     </tr>
+     <tr>
+      	<td align="middle" style="font-size:14px;padding:10px 0 10px 0">Address2</td>
+      	<td align="middle" style="font-size:14px;padding:10px 0 10px 0"><%= @order['address2']%></td>
+     </tr>
+     <tr>
+      	<td align="middle" style="font-size:14px;padding:10px 0 10px 0">City</td>
+      	<td align="middle" style="font-size:14px;padding:10px 0 10px 0"><%= @order['city']%></td>
+     </tr>
+     <tr>
+      	<td align="middle" style="font-size:14px;padding:10px 0 10px 0">State</td>
+      	<td align="middle" style="font-size:14px;padding:10px 0 10px 0"><%= State.find(@order['state_id']).try(:name)%></td>
+     </tr>
+     <tr>
+      	<td align="middle" style="font-size:14px;padding:10px 0 10px 0">Country</td>
+      	<td align="middle" style="font-size:14px;padding:10px 0 10px 0"><%= Country.find(@order['country_id']).try(:name)%></td>
+     </tr>
+     <tr>
+      	<td align="middle" style="font-size:14px;padding:10px 0 10px 0">Zip</td>
+      	<td align="middle" style="font-size:14px;padding:10px 0 10px 0"><%= @order['zip']%></td>
+     </tr>
+     <tr>
+      	<td align="middle" style="font-size:14px;padding:10px 0 10px 0">Phone</td>
+      	<td align="middle" style="font-size:14px;padding:10px 0 10px 0"><%= @order['phone']%></td>
+     </tr>
+     <tr>
+      	<td align="middle" style="font-size:14px;padding:10px 0 10px 0">Email</td>
+      	<td align="middle" style="font-size:14px;padding:10px 0 10px 0"><%= @order['email']%></td>
+     </tr>
+     <tr>
+      	<td align="middle" style="font-size:14px;padding:10px 0 10px 0">Products</td>
+      	<td align="middle" style="font-size:14px;padding:10px 0 10px 0"><%= @products%></td>
+     </tr>
+     <tr>
+      	<td align="middle" style="font-size:14px;padding:10px 0 10px 0">Variant ids </td>
+      	<td align="middle" style="font-size:14px;padding:10px 0 10px 0"><%= @variant_ids%></td>
+     </tr>
+    </tbody>
+	</table>
+  <p>Thank you</p>
+</div>

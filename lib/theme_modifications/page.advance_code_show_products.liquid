@@ -1,0 +1,975 @@
+{% layout none %}
+<style type="text/css">
+  .modal.in {
+  	background-color: transparent;
+  }
+  .modal-open .page-container {
+  	transform: initial;
+  }
+  .formError {
+    color: red;
+  }
+  .header_border{
+   display: none;
+  }
+  .inventory-count {
+    height: 50px;
+    width: 50px;
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: normal;
+    text-align: center;
+    font-size: 11px;
+    z-index: 1;
+  }
+
+  .inventory-out {
+    background-color: red;
+  }
+
+  .inventory-in {
+    background-color: #1b36bf;
+  }
+  .single-product {
+    display: flex;
+    justify-content: center;
+  }
+  .highlighted {
+    padding: .2em;
+    background-color: #ffeb84;
+  }
+</style>
+<script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+<link href="{{ 'advance_code_styles.css' | asset_url }}" rel="stylesheet" type="text/css"  media="all"  />
+
+<div class="container code-logo-container text-center" hidden>
+  <br><br><img  src="{{ 'logo.png' | asset_img_url:'400x' }}" ><br><br>
+</div>
+
+<script type="text/javascript">
+  $(document).ready(function(){
+    var codeStoreLink = "{{ shop.secure_url | append: '/pages/advance-code-store' }}";
+    function getUrlParams(search) {
+      let hashes = search.slice(search.indexOf('?') + 1).split('&')
+      let params = {}
+      hashes.map(hash => {
+          let [key, val] = hash.split('=')
+          params[key] = decodeURIComponent(val)
+      })
+      return params
+    }
+
+    var params = getUrlParams(window.location.search);
+
+    if(params.code != undefined){
+      var $newForm = $('<form>', {
+          'action': "{{ shop.secure_url | append: '/apps/advance_promo_codes/shop_store_front/fetch_products' }}",
+          'method': 'get'
+      }).append($('<input>', {
+          'name': 'code[name]',
+          'value': params.code,
+          'type': 'hidden'
+      }));
+
+      $.ajax({
+          url: $newForm[0].action,
+          data: $newForm.serialize(),
+          type: $newForm[0].method.toUpperCase()
+        })
+      .done(function(response) {
+        var res=jQuery.parseHTML(response),
+            data = JSON.parse(res[0].data),
+            products = data.products,
+            countries = data.countries,
+            states = data.states,
+            shipping = data.shipping,
+            products_limit = data.products_limit,
+            show_inventory_count = data.show_inventory_count,
+            $productsContainer = $("[data-for='products_collection']"),
+            $productTemplate = $("[data-template-for='product']").removeAttr('data-template-for').remove(),
+            $imageZoomModalTemplate = $("[data-template-for='image-zoom']").removeAttr('data-template-for').remove(),
+            $productsVariantsContainer = $("#products_variants"),
+            $variantProductNameTemplate = $("[data-template-for='product_variant_name']").removeAttr('data-template-for').remove(),
+            $productVariantAvailableTemplate = $("[data-template-for='product_variant_available']").removeAttr('data-template-for').remove(),
+            $multipleVariantTemplate = $("[data-template-for='multiple_variant']").removeAttr('data-template-for').remove(),
+            $singleVariantTemplate = $("[data-template-for='single_variant']").removeAttr('data-template-for').remove(),
+            $unifiedMultipleVariantTemplate = $("[data-template-for='unified_multiple_variant']").removeAttr('data-template-for').remove(),
+            $countrySelector = $('#country'),
+            $stateSelector = $('#state #order_state_id'),
+            $stateTextField = $('#state #order_state_name'),
+            $imageElements = $('.collection-container');
+
+        var productsElementsArray = [],
+            variantsElementsArray = [],
+            countryOptionsArray = [],
+            stateOptionsArray = [];
+
+        let variantsNamesObject= {};
+        let variantsIdsObject= {};
+        let variantsUrlsObject= {};
+
+        //rendering shipping data
+        var $shipping_type_span = $("#shipping-type"),
+            $free_shipping_for_span = $("#free-shipping-for"),
+            shipping_type = shipping.shipping_type,
+            free_shipping_for = shipping.free_shipping_for;
+
+        if(shipping_type == 'domestic'){
+          $shipping_type_span.text('We can ship this swag anywhere in the continental US.');
+        }else if(shipping_type == 'international'){
+          $shipping_type_span.text('We can only ship this particular swag outside of the continental US. ');
+        }else if(shipping_type == 'all'){
+          $shipping_type_span.text('We can ship this swag anywhere in the world. ')
+        }
+
+        if(shipping_type == 'domestic'){
+          if(free_shipping_for == 'domestic'){
+            $free_shipping_for_span.text('No shipping charges will be applied.')
+          }else{
+            $free_shipping_for_span.text('Shipping charges apply.')
+          }
+        }
+        else if(shipping_type == 'international'){
+          if(free_shipping_for == 'international'){
+            $free_shipping_for_span.text('No shipping charges will be applied.')
+          }else{
+            $free_shipping_for_span.text('Shipping charges apply.')
+          }
+        }
+        else if(shipping_type == 'all'){
+          if(free_shipping_for == 'domestic'){
+            $free_shipping_for_span.text('Swag headed overseas will be subject to shipping charges.')
+          }else if(free_shipping_for == 'international'){
+            $free_shipping_for_span.text('Swag headed for continental US will be subject to shipping charges.')
+          }else if(free_shipping_for == 'all'){
+            $free_shipping_for_span.text('No shipping charges will be applied.')
+          }
+        }
+
+        //rendering product limit
+        var $product_limit_span = $("#product-limit");
+        $product_limit_span.html(products_limit);
+        $("form[data-form-for='order_placement']").find("[type='submit']").data('product-limit', products_limit);
+
+        // rendering products
+        if(products.length == 1){
+          var $productElement = $productTemplate.clone().addClass('col-md-12').attr({'data-product-id':products[0].id, 'data-product-title': products[0].title});
+          $productElement.children('img').attr('src', products[0].imageUrl.replace('small', 'grande'));
+          $productElement.attr('data-target', `#id-${products[0].id}` );
+          var $imageZoomModalElement = $imageZoomModalTemplate.clone().prop('id', `id-${products[0].id}`);
+          $imageZoomModalElement.find('img').attr('src', products[0].imageUrl.replace('small', 'grande'));
+          $imageZoomModalElement.find('.modal-title').html(products[0].title);
+
+          if (show_inventory_count)
+          {
+            $productElement.children('span.inventory-count').html('OUT OF STOCK').addClass('inventory-out');
+          }
+          productsElementsArray.push($productElement);
+          productsElementsArray.push($imageZoomModalElement);
+          $productsContainer.addClass('single-product');
+        }else{
+          products.forEach(function(p, index){
+            var $productElement = $productTemplate.clone().addClass('col-md-6').attr({'data-product-id':p.id, 'data-product-title': p.title});
+            $productElement.children('img').attr('src', p.imageUrl.replace('small', 'grande'));
+            $productElement.attr('data-target', `#id-${p.id}` );
+            var $imageZoomModalElement = $imageZoomModalTemplate.clone().prop('id', `id-${p.id}`);
+            $imageZoomModalElement.find('img').attr('src', p.imageUrl.replace('small', 'grande'));
+            $imageZoomModalElement.find('.modal-title').html(p.title);
+
+            if (show_inventory_count)
+            {
+              $productElement.children('span.inventory-count').html('OUT OF STOCK').addClass('inventory-out');
+            }
+
+            productsElementsArray.push($productElement);
+            productsElementsArray.push($imageZoomModalElement);
+          });
+        }
+        $productsContainer.append(productsElementsArray);
+
+        //setting code id
+        $('#order_code_id').attr('value', data.code.id);
+
+        //rendering countries
+        // first country will be selected
+        countries.forEach(function(c, index){
+          var $countryOption = null;
+          if(index == 0){
+            $countryOption = $('<option>', { 'selected': 'selected', 'value': c.id }).html(c.name);
+          }else{
+            $countryOption = $('<option>', { 'value': c.id }).html(c.name);
+          }
+          countryOptionsArray.push($countryOption);
+        });
+        $countrySelector.append(countryOptionsArray);
+
+        //rendering states
+        if(states == null){
+          $stateTextField.prop("disabled", false);
+          $stateTextField.css("display", "block");
+        }else{
+          states.forEach(function(s, index){
+            var $stateOption = $('<option>', { 'value': s.id }).html(s.name);
+            stateOptionsArray.push($stateOption);
+          });
+          $stateSelector.append(stateOptionsArray);
+          $stateSelector.prop("disabled", false);
+          $stateSelector.css("display", "block");
+        }
+
+        //rendering variants
+        products.forEach(function(p, index){
+
+          var options = p.variantOptions.split('/');
+
+          if(options.length == 1 && options[0] == 'Title' && p.variants.split('||').slice(1).length == 1){
+            var $singleVariantElement = $singleVariantTemplate.clone();
+            var vprop = {};
+
+            p.variants.split('||')[1].split(',').forEach(function(prop){
+              prop = prop.split('=');
+              vprop[prop[0]] = prop[1];
+            });
+
+            var product_available = vprop['available'];
+            var product_inventory_quantity = vprop['inventory_quantity'];
+            var product_inventory_policy = vprop['inventory_policy'];
+
+            $singleVariantElement.attr('data-product-id', p.id);
+            $singleVariantElement.find('input').data('product-available', product_available );
+
+            $singleVariantElement.children('input#order_variant_id').prop('disabled', true);
+
+            if(product_inventory_quantity > 0 || product_inventory_policy == 'continue' ){
+              $singleVariantElement.children('input#order_variant_id').attr('value', vprop['id']);
+            }
+
+            if(product_inventory_quantity > 0 && show_inventory_count) {
+              $('.figure[data-product-id=' + p.id + ']').find('.inventory-count').html(product_inventory_quantity).addClass('inventory-in').removeClass('inventory-out');
+            }
+            else if(product_inventory_policy == 'continue' && show_inventory_count) {
+              $('.figure[data-product-id=' + p.id + ']').find('.inventory-count').html('In Stock').addClass('inventory-in').removeClass('inventory-out');
+            }
+
+            variantsElementsArray.push($singleVariantElement);
+
+            // push prodcut name here first
+            var $productVariantAvailableElement = $productVariantAvailableTemplate.clone();
+
+            var productAvailableText = '';
+            if (product_inventory_quantity > 0 || product_inventory_policy == 'continue') {
+              productAvailableText = "Product: " + p.title + " selected is <strong>In Stock</strong>";
+            }
+            else {
+              productAvailableText = "Product: " + p.title + " selected is <strong>Out of Stock</strong>";
+            }
+
+            $productVariantAvailableElement.attr('data-product-id', p.id);
+            $productVariantAvailableElement.html("<p style='font-size: 17px;'>" + productAvailableText + "</p><hr>");
+
+            variantsElementsArray.push($productVariantAvailableElement);
+
+          }else{
+            variantsNamesObject= {};
+            variantsIdsObject[p.id] = {};
+            let variantsName = p.variantOptions.split('/');
+            let colorIndex = variantsName.indexOf('Color');
+            variantsUrlsObject[p.id] = {};
+            var product_inventory_quantity = 0;
+            var product_inventory_policy = false;
+
+            p.variants.split('||').slice(1).forEach(function(variant, ind){
+              var vprop = {};
+              let colorName;
+              variant.split(',').forEach(function(prop){
+                prop = prop.split('=');
+                vprop[prop[0]] = prop[1];
+                if (prop[0] == 'title')
+                {
+                  titles = prop[1].split(' / ');
+                  colorName = titles[colorIndex];
+                  titles.forEach(function(title, index){
+                    if (variantsNamesObject[variantsName[index]] == undefined )
+                    {
+                      variantsNamesObject[variantsName[index]] = []
+                    }
+                    variantsNamesObject[variantsName[index]].push(title)
+                  })
+                }
+
+              });
+
+              product_inventory_quantity = product_inventory_quantity + parseInt(vprop['inventory_quantity']);
+              if( !product_inventory_policy && vprop['inventory_quantity'] == 'continue' ){
+                product_inventory_policy = true;
+              }
+
+              variantsIdsObject[p.id][vprop['title']] = { variant_id: parseInt(vprop.id), available: vprop.available};
+              variantsUrlsObject[p.id][colorName] = { variant_image_url: vprop.variant_image_url};
+            });
+
+            $imageElements.find(".figure[data-product-id='"+ p.id +"']").data('variant-image-urls', variantsUrlsObject[p.id]);
+            $imageElements.find(".figure[data-product-id='"+ p.id +"']").data('variant-ids', variantsIdsObject[p.id]);
+
+            // push product name here first
+            var $variantProductNameElement = $variantProductNameTemplate.clone();
+            $variantProductNameElement.find('#product_variant_name').html(p.title);
+            $variantProductNameElement.attr('data-product-id', p.id);
+
+            variantsElementsArray.push($variantProductNameElement);
+
+            variantsName.forEach(function(title, _i){
+              variantsNamesObject[title] = variantsNamesObject[title].filter((v,i,a) => a.indexOf(v) === i)
+              var $multipleVariantElement = $multipleVariantTemplate.clone();
+              $multipleVariantElement.find('label').html(title);
+
+              variantsNamesObject[title].forEach(function(title_name, _index){
+                var $optionElement = $('<option>', { 'key': title_name, 'value': title_name });
+                $optionElement.html(title_name);
+
+                $multipleVariantElement.attr('data-product-id', p.id);
+                var var_name = "variant_id_" + title.toLowerCase();
+                $multipleVariantElement.find('select').attr({'id': var_name, 'name': "order[" + var_name + "]" });
+                $multipleVariantElement.find('select').append($optionElement);
+              });
+
+              $multipleVariantElement.find('select').prop('disabled', true);
+              variantsElementsArray.push($multipleVariantElement);
+
+            })
+
+            // push product variant available here
+            var $productVariantAvailableElement = $productVariantAvailableTemplate.clone();
+            $productVariantAvailableElement.attr('data-product-id', p.id);
+            variantsElementsArray.push($productVariantAvailableElement);
+
+            var $unifiedMultipleVariantElement = $unifiedMultipleVariantTemplate.clone();
+            $unifiedMultipleVariantElement.attr('data-product-id', p.id);
+            $unifiedMultipleVariantElement.children('input#order_variant_id').attr({'value': '', 'data-product-id': p.id, 'disabled': 'true'});
+
+            variantsElementsArray.push($unifiedMultipleVariantElement);
+
+            if(product_inventory_quantity > 0 && show_inventory_count) {
+              $('.figure[data-product-id=' + p.id + ']').find('.inventory-count').html(product_inventory_quantity).addClass('inventory-in').removeClass('inventory-out');
+            }
+            else if(product_inventory_policy && show_inventory_count) {
+              $('.figure[data-product-id=' + p.id + ']').find('.inventory-count').html('In Stock').addClass('inventory-in').removeClass('inventory-out');
+            }
+          }
+          $productsVariantsContainer.append(variantsElementsArray);
+        });
+
+      })
+      .fail(function( xhr, status, errorThrown ) {
+        // console.log( "Error: " + errorThrown );
+        // console.log( "Status: " + status );
+        // console.dir( xhr );
+        //redirecting to app's storefront in case metafield is not set
+        if(xhr.status == 301 && xhr.responseJSON.redirect_link != undefined){
+          window.location.replace(xhr.responseJSON.redirect_link);
+        }
+        else if(xhr.status === 422 || xhr.status === 404){
+          window.location.replace(codeStoreLink + "?error=" + xhr.responseJSON.error.replace(/\s/g, "_") );
+        }
+      });
+
+    }else{
+      window.location.replace(codeStoreLink);
+    }
+  })
+</script>
+
+<script>
+  $(document).ready(function(){
+    var productContainer = $(".product-collection-section");
+
+    function adjustHeight(){
+      var windowHeight = $(window).height();
+      if(productContainer.offset().top < windowHeight ){
+        productContainer.height(windowHeight - productContainer.offset().top);
+      }
+    }
+
+    adjustHeight();
+
+    $(".collection-container").on('click', ".figure", function(){
+
+      adjustHeight();
+
+      function arrayRemove(arr, value) {
+        return arr.filter(function(ele){
+          return ele != value;
+        });
+      }
+
+      // hides check mark from previous selected product
+      $(".product-collection-section .figure").removeClass('js-active');
+
+      var product_id = $(this).data('product-id');
+      var product_title = $(this).data('product-title');
+
+      // shows check mark on clicked product
+      if($(this).hasClass('active'))
+      {
+        $(this).removeClass('active js-active');
+
+        // finds and hide variants for clicked product
+        var $div = $(".form--product-options[data-product-id='"+ product_id +"']");
+        $div.addClass('hide');
+
+        // disable options for clicked product
+        $div.find('select.variant_id').prop({'disabled': true, 'selectedIndex': 0});
+        $div.find('input.variant_id').prop({'disabled': true, 'val': ''});
+
+        // sets product_id for clicked product
+        var array = $('input.product_id').val().split(',');
+        var new_val = arrayRemove(array, product_id.toString()).join();
+        $('input.product_id').val(new_val);
+
+      } else {
+        $(this).addClass('active js-active');
+
+        // finds and unhide variants for clicked product
+        var $div = $(".form--product-options[data-product-id='"+ product_id +"']");
+        $div.removeClass('hide');
+
+        // enables options for clicked product
+        $div.find('.variant_id').prop('disabled', false);
+
+        // sets product_id for clicked product
+        var current_product_id = $('input.product_id').val();
+        var new_val = current_product_id + "," + product_id
+        $('input.product_id').val(new_val);
+      }
+
+    });
+
+
+    $(window).resize(function(){
+      adjustHeight();
+    });
+  });
+</script>
+
+<script>
+  $(document).ready(function() {
+    var newHireKit = [];
+
+    function setCustomText(prefix) {
+      if (newHireKit.includes(prefix)) {
+        // $("#customize-headline").html("");
+        // $('#customize-subheadline').html("");
+        // $("#shipping").html("");
+      }
+    }
+
+    var queryString = window.location.href.split('?')[1];
+
+    if (queryString !== undefined && queryString.split('=')[0] === 'code') {
+      var code = queryString.split('=')[1];
+      if (code != undefined) {
+        var codePrefix = code.substring(0, 3);
+        if (codePrefix != undefined) {
+          setCustomText(codePrefix);
+        }
+      }
+    }
+
+  });
+</script>
+
+<script>
+  $(document).ready(function(){
+
+    function updateFormSubmitButton() {
+      var $formSubmitButton = $("form[data-form-for='order_placement']").find("[type='submit']");
+      var productsAllowed = $formSubmitButton.data('product-limit');
+      var optionsInvalidFlag = false;
+
+      var $enabledInput = $("input#order_variant_id:enabled");
+
+      if ($enabledInput.length < 1) {
+        optionsInvalidFlag = true;
+      }
+
+      $enabledInput.each(function(index, element){
+        // console.log('Index: ' + index, '; Value found: '+ element.value);
+        if(element.value == '') {
+          // console.log('invalid');
+          optionsInvalidFlag = true;
+          return false;
+        }
+      });
+
+      if ($enabledInput.length > productsAllowed) {
+        // console.log('disabling');
+        optionsInvalidFlag = true;
+      }
+
+      if (optionsInvalidFlag == true) {
+        // console.log('enabling');
+        $formSubmitButton.prop('disabled', true);
+        $('[data-toggle="tooltip"]').tooltip( "enable" );
+      }
+      else {
+        $formSubmitButton.prop('disabled', false);
+        $('[data-toggle="tooltip"]').tooltip( "disable" );
+      }
+    }
+
+    function showProductLimitReminder() {
+      var productsAllowed = $("form[data-form-for='order_placement']").find("[type='submit']").data('product-limit');
+      if ( $(".collection-container .figure.active").length > productsAllowed ) {
+        window.alert('You have selected too many items. You will need to de-select items until only ' + productsAllowed + ' items are selected before you can submit.')
+      }
+    }
+
+    function checkAvailability(figure_event, select_event) {
+      var productId = (figure_event) ? $(figure_event).closest('.figure').data('product-id') : $(select_event).closest('.form--product-options').data('product-id');
+      var $variantDivs = $(".form--product-options[data-product-id='" + productId + "']");
+      var $formSubmitButton = $("form[data-form-for='order_placement']").find("[type='submit']");
+
+      showProductLimitReminder();
+
+      if ($variantDivs.find('select').length > 0) {
+        var $variantNonDefaultDivs = $variantDivs.find('select');
+        var productVariantsObject = $(".collection-container .figure[data-product-id='" + productId + "']").data('variant-ids');
+
+        if (productVariantsObject) {
+          var $unifiedVariantElement = $("input#order_variant_id[data-product-id='" + productId + "']")
+          var variantTitlesArray = [];
+          var variantTitle = '';
+          var defaultOptionSelectFlag = 0;
+
+          $variantNonDefaultDivs.each(function(index) {
+            var valText = this.selectedOptions[0].value;
+            variantTitlesArray.push(valText);
+            if (valText == '') {
+              defaultOptionSelectFlag = 1;
+            }
+          });
+          variantTitle = variantTitlesArray.join(' / ');
+
+          if (productVariantsObject[variantTitle] && productVariantsObject[variantTitle].available == 'true') {
+
+            $unifiedVariantElement[0].value = productVariantsObject[variantTitle].variant_id;
+            $unifiedVariantElement.prop('disabled', false);
+
+            //check if image has active class present then unhide, if not(means product unselected) then don't
+            if (figure_event && $(figure_event).closest('.figure').hasClass('active')) {
+              $variantDivs.removeClass('hide');
+            }
+            $variantDivs.find('#product_variant_available').html('In Stock');
+            // console.clear();
+            // console.log('variant found');
+          }
+          else if (productVariantsObject[variantTitle] && productVariantsObject[variantTitle].available == 'false') {
+            $variantDivs.find('#product_variant_available').html('Out of Stock');
+            $unifiedVariantElement[0].value = '';
+            // console.clear();
+            // console.log('variant found, but not available');
+          }
+          else {
+            $variantDivs.find('#product_variant_available').html('Please select valid option.');
+            $unifiedVariantElement[0].value = '';
+            // console.clear();
+            // console.log('variant NOT found');
+          }
+          //enable/disable the form submit
+          updateFormSubmitButton();
+        }
+      }
+      else if ($variantDivs.find('input').length > 0) {
+        // console.clear();
+        // console.log('variant available: ' + $variantDivs.find('input').data('product-available'));
+        updateFormSubmitButton();
+      }
+    }
+
+    function setVariantImage(colorOption) {
+      var selectedColor = colorOption.selectedOptions[0].value;
+      var productId = $(colorOption).closest('.form--product-options').data('product-id');
+      var imageActiveObject = $(".collection-container .figure[data-product-id='" + productId + "']");
+      var productVariantsObject = imageActiveObject.data('variant-image-urls');
+
+      if (productVariantsObject[selectedColor]) {
+        imageActiveObject.children('img').attr('src', productVariantsObject[selectedColor].variant_image_url);
+        $(`#id-${productId}`).find('img').attr('src', productVariantsObject[selectedColor].variant_image_url);
+      }
+    }
+
+    $(document).on("change", ".form--product-options select#variant_id_color", (event) => setVariantImage(event.target) );
+
+    $(document).on("change", ".form--product-options select", (event) => checkAvailability(undefined, event.target) );
+    $(".collection-container").on('click', ".figure", (event) => checkAvailability(event.target, undefined) );
+
+  });
+</script>
+
+<script type="text/javascript">
+  $(document).ready(function(){
+    var get_states_link = "{{ shop.secure_url | append: '/apps/advance_promo_codes/shop_store_front/states' }}";
+
+    $('#country').on('change', function(event){
+      var selected_country_id = parseInt(this.value),
+          $state_text_field = $('#state').children("input#order_state_name"),
+          $state_select_field = $('#state').children("select#order_state_id");
+
+      $state_text_field.prop("disabled", true);
+      $state_select_field.prop("disabled", true);
+
+      $.getJSON(get_states_link, {'selected_country_id' : selected_country_id })
+
+      .done(function(data){
+        var $state_text_field = $('#state').children("input#order_state_name"),
+            $state_select_field = $('#state').children("select#order_state_id");
+
+        if(Object.keys(data).length == 0){
+          // display state_text_field and hide state_select_field
+          $state_select_field.css("display", "none");
+          $state_select_field.prop("disabled", true);
+          $state_text_field.css("display", "block");
+          $state_text_field.prop("disabled", false);
+        }
+        else{
+          // display state_select_field and hide state_text_field
+          $state_text_field.css("display", "none");
+          $state_text_field.prop("disabled", true);
+          $state_select_field.css("display", "block");
+          $state_select_field.prop("disabled", false);
+
+          // removing old options
+          $state_select_field.children().remove()
+
+          //adding new options
+          var new_options = '<option value=""></option>'
+
+          $.each(data, function(key, value){
+            new_options += "\n<option value=" + key + ">" + value + "</option>";
+          });
+
+          $state_select_field.append(new_options);
+        }
+      })
+      .fail(function(xhr, status, error){
+        // console.log("xhr: " + xhr + ", status: " + status + ", error: " + error);
+      });
+    });
+  });
+</script>
+
+<script>
+  function FormSubmitter(options){
+    this.$formElement = options.$formElement;
+    this.requestType = this.$formElement[0].method.toUpperCase();
+    this.requestUrl = this.$formElement[0].action;
+    this.$submitButton = this.$formElement.find("[type='submit']");
+  }
+
+  FormSubmitter.prototype.init = function(){
+    this.$formElement.submit(this.sendAjaxRequest());
+  };
+
+  FormSubmitter.prototype.mergeVariantId = function(){
+    var ids = [];
+    $('input.variant_id:enabled').each(function(index, element){
+      ids.push(element.value)
+    });
+    $("#order_variant_ids").val(ids.join());
+  };
+
+  FormSubmitter.prototype.sendAjaxRequest = function(){
+    var _this = this;
+    return function(event){
+      event.preventDefault();
+
+      _this.mergeVariantId();
+      _this.$submitButton.prop('disabled', true);
+      _this.$submitButton.attr('value', _this.$submitButton.data('disable-with'));
+
+      $.ajax({
+        url: _this.requestUrl,
+        data: _this.$formElement.serialize(),
+        type: _this.requestType
+      })
+      .done(function(response, status, xhr) {
+        var expirationToken = xhr.getResponseHeader('expiration-token');
+        if(response.redirect_link !== undefined){
+          window.location.replace(response.redirect_link + "?etoken=" + expirationToken);
+        }
+        $("form[data-form-for='order_placement']").find("[type='submit']").prop('disabled', false).attr('value', 'Submit');
+      })
+      .fail(function( xhr, status, errorThrown ) {
+        // console.log( "Error: " + errorThrown );
+        // console.log( "Status: " + status );
+        // console.dir( xhr );
+
+        $('.formError, .alert-danger').removeClass('hide').addClass('hide').empty();
+
+        //redirecting to app's storefront in case metafield is not set
+        if(xhr.status == 301 && xhr.responseJSON.redirect_link != undefined){
+          window.location.replace(xhr.responseJSON.redirect_link);
+        }
+        //rendering error
+        else if(xhr.status === 422 && xhr.responseJSON.error === 'Invalid Request'){
+          var error_messages = xhr.responseJSON.error_messages;
+          $.each(error_messages, function(key, value){
+
+            if(key === 'base'){
+              var $errorElements = []
+              value.forEach(function(e){
+                $errorElements.push($("<p></p>").text(e).addClass('mb-0'));
+              });
+              $("[data-order-error-for=" + key + "]").append($errorElements).removeClass('hide');
+            }else{
+              $("[data-order-error-for=" + key + "]").html(value.join(' ,')).removeClass('hide');
+            }
+
+          });
+        }
+        $("form[data-form-for='order_placement']").find("[type='submit']").prop('disabled', false).attr('value', 'SUBMIT');
+      });
+    }
+  };
+
+  $(function(){
+    var orderPlacementFromSubmitterArguments = { $formElement : $("form[data-form-for='order_placement']") },
+        orderPlacementFromSubmitter = new FormSubmitter(orderPlacementFromSubmitterArguments);
+
+    orderPlacementFromSubmitter.init();
+  });
+</script>
+
+<script>
+  $(document).ready(function(){
+    $("input, textarea").not(".do-not-filter").keyup(function(){
+      var strng = $(this).val();
+      var cleanedStr = allowCharsOnly(strng);
+      $(this).val(cleanedStr);
+    });
+
+    function allowCharsOnly (string) {
+      var regex_allow = /[^a-zA-Z0-9!@#\$\^\&*\)\(\/\',:+=._-\s]/g;
+      return string.replace(regex_allow, '');
+    }
+  });
+
+  $(function () {
+    $('[data-toggle="tooltip"]').tooltip();
+  })
+</script>
+
+<main class="container" data-for="show_products">
+  <div class="row d-flex flex-wrap align-item-start">
+    <aside class="product-collection-section form-group flex-col ">
+      <div class="d-flex collection-container" data-for='products_collection'>
+
+        <div class="figure col-sm-12 col-xs-12" data-toggle="modal" data-target="#exampleModal" data-product-id='' data-product-title='' data-template-for='product'>
+          <span class='inventory-count'></span>
+          <i class="glyphicon glyphicon-ok-circle" style="color: green;"></i>
+          <img class="img-responsive center-block" src="">
+        </div>
+		    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" data-template-for='image-zoom'>
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+                <h5 class="modal-title">Modal title</h5>
+              </div>
+              <img class="img-responsive center-block" src="">
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+    <article class="product-single product-form-section flex-col">
+
+      <div class="alert alert-dismissible alert-danger hide" data-order-error-for="base">
+          <!-- render errors -->
+      </div>
+
+      <form action="{{ shop.secure_url | append: '/apps/advance_promo_codes/shop_store_front/orders' }}" method="post" data-form-for="order_placement">
+        <h1 id="customize-headline">We'd ♥ to send you some swag!</h1>
+
+        <div class="form-group">
+          <span id="customize-subheadline">Please fill out your information below so we can send you some swag. We hope you enjoy your swag! Thanks for doing great things.</span>
+          <span id="customize-subheadline-1"></span>
+          <span id="customize-subheadline-2"></span>
+          <span id="customize-products-limit">
+            <br><br><strong>You can select a maximum of <span id="product-limit"></span> product(s) out of items listed on left.</strong>
+          </span>
+          <span id="shipping"><br><br>
+            <span id="shipping-type"></span>
+            <span id="free-shipping-for"></span>
+          </span><br>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 col-sm-6">
+            <div class="form-group">
+              <label for="first_name" class="required-field">First name</label>
+              <input class="form-control" id="first_name" type="text" name="order[first_name]">
+              <div class="formError hide" data-order-error-for="first_name"></div>
+            </div>
+          </div>
+
+          <div class="col-md-6 col-sm-6">
+            <div class="form-group">
+              <label for="last_name" class="required-field">Last name</label>
+              <input class="form-control" id="last_name" type="text" name="order[last_name]">
+              <div class="formError hide" data-order-error-for="last_name"></div>
+            </div>
+          </div>
+
+          <!-- <div class="col-md-6 col-sm-6">
+            <div class="form-group">
+              <label for="company">Company</label>
+              <input class="form-control" id="company" type="text" name="order[company]">
+              <div class="formError hide" data-order-error-for="company"></div>
+            </div>
+          </div> -->
+
+          <div class="col-md-6 col-sm-6">
+            <div class="form-group">
+              <label for="title">Title</label>
+              <input class="form-control" id="title" type="text" name="order[title]">
+              <div class="formError hide" data-order-error-for="title"></div>
+            </div>
+          </div>
+
+          <div class="col-md-12 col-sm-12">
+            <div class="form-group">
+              <label for="address1" class="required-field">Address Line 1</label>
+              <input class="form-control" id="address1" type="text" name="order[address1]" maxlength="34">
+              <div class="formError hide" data-order-error-for="address1"></div>
+            </div>
+          </div>
+
+          <div class="col-md-12 col-sm-12">
+            <div class="form-group">
+              <label for="address2">Address Line 2</label>
+              <input class="form-control" id="address2" type="text" name="order[address2]" maxlength="34">
+              <div class="formError hide" data-order-error-for="address2"></div>
+            </div>
+          </div>
+
+          <div class="col-md-6 col-sm-6">
+            <div class="form-group">
+              <label for="city" class="required-field">City</label>
+              <input class="form-control" id="city" type="text" name="order[city]">
+              <div class="formError hide" data-order-error-for="city"></div>
+            </div>
+          </div>
+
+          <div class="col-md-6 col-sm-6">
+            <div class="form-group">
+              <label for="country" class="required-field">Country</label>
+              <select class="form-control" id="country" name="order[country_id]">
+                <!-- <option selected="selected" value="" data-template-for='country_option'></option> -->
+              </select>
+              <div class="formError hide" data-order-error-for="country_id"></div>
+            </div>
+          </div>
+
+          <div class="col-md-6 col-sm-12">
+            <div class="form-group">
+              <label for="state" class="required-field"> State / Province</label>
+              <span id="state">
+                <input style="display: none;" disabled="disabled" class="form-control state_name" type="text" name="order[state_name]" id="order_state_name">
+                <select class="form-control" style="display: none;" disabled="disabled" name="order[state_id]" id="order_state_id">
+                  <option value=""></option>
+                </select>
+              </span>
+              <div class="formError hide" data-order-error-for="state_name"></div>
+              <div class="formError hide" data-order-error-for="state_id"></div>
+              <div class="formError hide" data-order-error-for="shopify_state"></div>
+            </div>
+          </div>
+
+          <div class="col-md-6 col-sm-12">
+            <div class="form-group">
+              <label for="zip" class="required-field">Zip / Postal Code</label>
+              <input class="form-control" id="zip" type="text" name="order[zip]">
+              <div class="formError hide" data-order-error-for="zip"></div>
+            </div>
+          </div>
+
+          <div class="col-md-12 col-sm-12">
+            <div class="form-group">
+              <label for="phone" class="required-field">Phone</label>
+              <input class="form-control" id="phone" type="text" name="order[phone]">
+              <div class="formError hide" data-order-error-for="phone"></div>
+            </div>
+          </div>
+
+          <div class="col-md-12 col-sm-12">
+            <div class="form-group">
+              <label for="email" class="required-field">Email</label>
+              <input class="form-control" id="email" type="text" name="order[email]">
+              <div class="formError hide" data-order-error-for="email"></div>
+            </div>
+            <hr>
+          </div>
+
+          <div id="products_variants">
+            <div class="col-md-12 col-sm-12 form--product-options hide" data-template-for='product_variant_name'>
+              <p style="font-size: 17px;"> Please select variant options for <span id='product_variant_name' style="font-weight: bold;"></span></p>
+            </div>
+
+            <div class="col-md-12 col-sm-12 form--product-options hide" data-template-for='product_variant_available'>
+              <p style="font-size: 17px;"> Selected variant options is: <span id='product_variant_available' style="font-weight: bold;"></span></p>
+              <hr>
+            </div>
+
+            <div class="form--product-options hide" data-product-id="" data-template-for='single_variant'>
+              <input class="variant_id" value="" type="hidden" name="order[variant_id]" id="order_variant_id">
+            </div>
+
+            <!-- or -->
+
+            <div class="form--product-options hide" data-product-id="" data-template-for='multiple_variant'>
+              <div class="col-md-12 col-sm-12">
+                <div class="form-group">
+                  <label htmlfor="variant_id" class="required-field">option1/option2/option3</label>
+                  <select id="variant_id" class="variant_id form-control" name="order[variant_id]">
+                    <option value="">&lt;Select One&gt;</option>
+                    <!-- <option key="1111" value="1111" data-in-stock='yes'>M / d / green</option> -->
+                    <!-- <option key="2222" value="2222" data-in-stock='no' disabled="true">xl / green  out of stock </option> -->
+                  </select>
+                  <div class="formError hide" data-order-error-for="variant_id"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form--product-options hide" data-product-id="" data-template-for='unified_multiple_variant'>
+              <input class="variant_id" value="" type="hidden" name="order[variant_id]" id="order_variant_id">
+            </div>
+
+            <div class="form--product-options hide">
+              <input value="" type="hidden" name="order[variant_ids]" id="order_variant_ids">
+            </div>
+          </div>
+
+          <div class="col-md-12 col-sm-12">
+            <input class="product_id" value="" type="hidden" name="order[product_ids]" id="order_product_id">
+            <input value="" type="hidden" name="order[code_id]" id="order_code_id">
+            <input type="submit" data-toggle="tooltip" data-placement="top" title="Please select availabe products" name="commit" value="SUBMIT" class="btn btn-submit" data-disable-with="Submitting..." disabled>
+          </div>
+
+        </div>
+
+      </form>
+    </article>
+  </div>
+</main>

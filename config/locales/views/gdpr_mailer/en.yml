@@ -1,0 +1,4 @@
+en:
+  gdpr_mailer:
+    send_customers_data_email:
+      subject: "Customer Data Requested for %{customer_email}"

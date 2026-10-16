@@ -1,0 +1,8 @@
+en:
+  activerecord:
+    errors:
+      models:
+        shop:
+          code_page_already_exist:
+            one: 'Page with handle: %{handles} already exists.'
+            other: 'Pages with handles: %{handles} already exists.'

@@ -1,0 +1,45 @@
+<%= content_tag :div, nil, id: 'shopify-app-page-title', data: { title: 'Theme Modification Instructions' } %>
+
+<div class="col-md-12 col-xs-12">
+  <div class="panel panel-default">
+    <div class="panel-body">
+      <h2>Please follow the guidelines below to modify your theme:</h2>
+      <br>
+      <ol>
+        <li>
+          <%= button_to I18n.t(:click_here, scope: :action), modify_themes_path, remote: :true, method: :post, class: 'btn btn-link', form: { style: 'display:inline-block;' }, data: { disable_with: 'Processing...' } %>
+          to modify your live theme to add the required files or add them manually as mentioned in next step.
+        </li>
+        <li>Manually modify the theme by adding the following files in the specified paths:-</li>
+        <div class="panel panel-default">
+          <table class="table table-striped table-hover panel-body">
+            <thead>
+              <tr>
+                <th>File</th>
+                <th>Path</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% SHOPIFY_FILES_PATHS.each do |path_key, path_value| %>
+                <tr>
+                  <td><%= link_to path_value.split('/')[1], download_file_themes_path(file_path_key: path_key, shop: current_shop.shopify_domain), target: "_blank" %></td>
+                  <td><%= path_value %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+        <hr>
+        <li>After you have recieved theme modification success email,
+          <%= button_to I18n.t(:click_here, scope: :action), create_code_pages_themes_path, remote: :true, method: :post, class: 'btn btn-link', form: { style: 'display:inline-block;' }, data: { disable_with: 'Processing...' } %>
+          to create the following pages for the templates added(ensure than none of below page handles already exist).
+          <ul>
+            <li>Advance Code Store - https://shop-name.myshopify/pages/advance-code-store</li>
+            <li>Advance Code Products - https://shop-name.myshopify/pages/advance-code-products</li>
+            <li>Advance Code Thank You - https://shop-name.myshopify/pages/advance-code-thank-you</li>
+          </ul>
+        </li>
+      </ol>
+    </div>
+  </div>
+</div>

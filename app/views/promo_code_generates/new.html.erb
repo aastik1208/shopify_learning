@@ -1,0 +1,99 @@
+<%= content_tag :div, nil, id: 'shopify-app-page-title', data: { title: 'Generate Random Codes' } %>
+
+<div class="col-md-7 col-xs-12 col-md-offset-2">
+  <div class="well">
+    <%= form_with url: promo_code_generates_path, class: 'form-horizontal' do |f| %>
+      <fieldset>
+
+        <div class="form-group">
+          <div class="col-xs-5 col-md-6">
+            <%= f.label :prefix, class: 'control-label' %>
+            <%= f.text_field :prefix,  class: 'form-control', placeholder: 'Enter prefix value for codes like AAA or ABC' %>
+          </div>
+          <div class="col-xs-5 col-md-6">
+            <%= f.label :number_of_codes_required, class: 'control-label' %>
+            <%= f.number_field :count, { value: 1, min: 1, max:1000, class: 'form-control', placeholder: 'Enter number of codes to be generated' } %>
+          </div>
+          <div class="col-xs-5 col-md-6">
+            <%= f.label :usage_limit, class: 'control-label' %>
+            <%= f.number_field :usage_limit, { value: 1, min: 1, class: 'form-control', id: :promo_code_usage_limit } %>
+          </div>
+          <div class="col-xs-5 col-md-6">
+            <%= f.label 'Number of products allowed in each order', class: 'control-label' %>
+            <%= f.number_field :products_in_order_limit, { value: 1, min: 1, class: 'form-control', id: :promo_code_products_in_order_limit } %>
+          </div>
+          <div class="col-xs-5 col-md-6">
+            <%= f.label :expiry_date, class: 'control-label' %>
+            <%= f.text_field :expiry_date, autocomplete: "off", class: 'form-control',
+                  data: { provide: 'datepicker', 'date-format' => 'yyyy-mm-dd', 'date-start-date': Date.today}, placeholder: 'YYYY-MM-DD' %>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="col-xs-12 col-md-12">
+            <label class='control-label'>
+              <%= f.check_box :allow_domestic_shipping, checked: true %>
+              Allows domestic shipping
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="col-xs-12 col-md-12">
+            <label class='control-label'>
+              <%= f.check_box :has_free_domestic_shipping, checked: true %>
+              Grants free domestic shipping
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="col-xs-12 col-md-12">
+            <label class='control-label'>
+              <%= f.check_box :allow_international_shipping %>
+              Allows international shipping
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="col-xs-12 col-md-12">
+            <label class='control-label'>
+              <%= f.check_box :has_free_international_shipping %>
+              Grants free international shipping
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="col-xs-12 col-md-12">
+            <label class='control-label'>
+              <%= f.check_box :add_complete_url_column %>
+              Add column with complete promocode URLs
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="col-xs-12 col-md-12">
+            <%= f.submit I18n.t(:save, scope: :action), class: 'btn btn-primary' %>
+            <%= button_tag I18n.t(:reset, scope: :action), type: :reset, class: 'btn btn-default' %>
+            <%= link_to I18n.t(:cancel, scope: :action), home_path, class: 'btn btn-default' %>
+          </div>
+        </div>
+
+      </fieldset>
+    <% end %>
+  </div>
+</div>
+
+<div class="col-md-9 col-md-offset-1 col-xs-12">
+  <div class="tab-pane" id="admin-end">
+    <% if @promo_code_generated_records.empty? %>
+      <h3>No promo codes generated from here yet.</h3>
+    <% else %>
+      <%= render partial: 'promo_code_generated_records', object: @promo_code_generated_records %>
+      <%= will_paginate @promo_code_generated_records %>
+    <% end %>
+  </div>
+</div>

@@ -1,0 +1,7 @@
+en:
+  activerecord:
+    errors:
+      models:
+        promo_code_generated_record:
+          prefix_required: "Please enter prefix."
+          prefix_invalid: "Prefix of length 3 is required, and only alphabets allowed."

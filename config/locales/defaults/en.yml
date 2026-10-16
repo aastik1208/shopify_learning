@@ -1,0 +1,19 @@
+en:
+  navbar:
+    home: 'Home |'
+    prefixes: 'Prefixes |'
+    promo_codes: 'Promo Codes |'
+    generate_promo_codes: "Generate Random Codes |"
+    reports: "Code Reports |"
+    lookup: 'Code Lookup |'
+    instruction: "Set up Instructions |"
+    setting: 'Settings |'
+
+  action:
+    save: 'Save'
+    edit: 'Edit'
+    reset: 'Reset'
+    cancel: 'Cancel'
+    delete: 'Delete'
+    submit: 'Submit'
+    click_here: 'CLICK HERE'

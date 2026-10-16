@@ -1,0 +1,41 @@
+en:
+  promo_codes:
+    create:
+      atleast_one_code_required: 'Please enter atleast one code name.'
+      invalid:
+        one: '%{count} promo code entered was invalid. Please check it above and try again.'
+        other: '%{count} promo codes entered were invalid. Please check them above and try again.'
+      success:
+        one: '%{count} promo code was successfully created.'
+        other: '%{count} promo codes were successfully created.'
+      duplicate:
+        one: '%{count} duplicate promo code was skipped.'
+        other: '%{count} duplicate promo codes were skipped.'
+
+    update:
+      not_found: "Invalid code. Cannot be updated."
+      success: 'Code updated successfully.'
+      failure: 'Code could not be updated.'
+
+    destroy:
+      not_found: "Invalid code. Could not be deleted."
+      success: 'Code destroyed successfully.'
+      failure: 'Code could not be destroyed.'
+
+    lookup:
+      not_found: "No code found."
+
+    generate:
+      file_name: "Promo Codes - %{shop_name}.csv"
+
+    generate_used_code:
+      file_name: "Used Promo Codes - %{shop_name}.csv"
+
+    generate_unused_code:
+      file_name: "Unused Promo Codes - %{shop_name}.csv"
+
+    generate_exhausted_code:
+      file_name: "Exhausted Promo Codes - %{shop_name}.csv"
+
+    generate_expired_code:
+      file_name: "Expired Promo Codes - %{shop_name}.csv"
